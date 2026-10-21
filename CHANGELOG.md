@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.27.10 — 2026-10-21
+
+### Fixed
+- **Passwords no longer stay in monthly snapshots.** The definitions of Immich and Nextcloud as they run during the checks (`*-quarantine.json`, new in 0.27.9) hold the same database passwords as the other saved definitions. When the update was over they were not blanked like the others, so the passwords stayed in plain text in the snapshot on the HDD. They are blanked now; snapshots from 0.27.9 are cleaned at the next monthly run.
+- **Nextcloud's file check leaves nothing behind.** Before and after each update, the check writes a small test file in the administrator's files and deletes it. The deleted file went to the trash bin, so one was left there every month. After a rollback, it was also a file the restored database knew nothing about. The trash bin is now paused for that one deletion, where Nextcloud allows it.
+- **A failure after the update is committed says so.** If Immich or Nextcloud could not be opened up again, the message read like a failed update. It now says the update is installed and that the resume service retries opening them up, without rolling back.
+
+### Changed
+- Version 0.27.10; the release folder is now `nekoserver-v0.27.10`.
+
+### Upgrade notes
+- The bundled runtime must be rebuilt for this release.
+
 ## v0.27.9 — 2026-10-21
 
 ### Fixed
