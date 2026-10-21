@@ -3,6 +3,11 @@
 ## v0.27.9 — 2026-10-21
 
 ### Fixed
+- **A failed monthly update can no longer leave photos or files out of step with their database.** The updated apps used to start on their usual ports before every check had finished, so phones could reconnect and upload, edit or delete in that window. If a later check then failed, the rollback restored the old Immich and Nextcloud databases but not the photo library or user files, which aren't in the monthly snapshot. That could leave uploads with no database entry, or database entries pointing at deleted files.
+  - While Immich and Nextcloud are checked, they run on a random port on this computer only, with no background jobs (no Nextcloud cron, Immich API only).
+  - The update is committed (journal phase `committed`) only after every check and the media audit have passed. Only then do the two apps open up again.
+  - A failure before the commit rolls back while nothing could have changed those files. A failure after it keeps the update and only retries opening the apps up.
+  - Tests run the whole sequence with stand-ins for Docker and induce failures at each step. A real Docker run with an induced failure still needs to be done on a server.
 - **The installer copy kept on the SSD can set the dashboard up again.** It kept the dashboard's page, styles, scripts and logo, but not its app manifest and icons (`manifest.webmanifest`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`). After an OS rebuild, running dashboard setup from that copy stopped with "file not found"; the dashboard already installed kept working. The whole dashboard folder is now kept. A test checks that the copy has every file of the release, except tests and the template settings, and that dashboard setup can load its files from it.
 
 ### Changed
