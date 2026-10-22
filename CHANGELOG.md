@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.27.11 — 2026-10-21
+
+### Fixed
+- **Every Immich original is now archived, whatever its format.** The photo archive copied only files with extensions on its own list. Files Immich accepts but the list lacked (`.jfif`, `.jpe`, `.jp2`, `.psd`, `.svg`, `.mxf`, several camera RAW formats) were left out without a word, and the job still reported success. The USB photo backup copies that archive, so they were missing there too. Now everything in Immich's upload and library folders is archived, except Immich's own `.immich` folder markers. The next archive run copies the originals that were left out before.
+- **Immich comes back after a manual snapshot that was cut off.** The manual Immich snapshot (`recover.py snapshot`) stops Immich's services and restarted them only in a `finally` block. That never runs after a power cut, an out-of-memory kill or `kill -9`, so Immich stayed offline until restarted by hand. Before stopping anything, the snapshot now records which services it stopped and installs a one-time boot hook. At the next boot, the hook (or `sudo python3 recover.py resume`, or the next snapshot) starts them again. The record and the hook are removed only once they are confirmed running.
+- **A second graphics chip is tried when the first fails.** On a machine with Intel and AMD graphics, only Intel was checked. If it failed, both apps went to software even though the AMD chip might have worked. Each app now gets the first chip, Intel first, that passes the check inside that app.
+- **The finishing screen shows the dashboard at its real address.** With `dashboard.port` changed (to 8899, say), it still said `http://127.0.0.1:8787`. It now uses the configured port, and the default port is written in one place instead of seven.
+- **Sonarr, Radarr and Lidarr could change the media library while an update was still being checked.** They started normally, with a writable library and their background jobs running. An import, rename or delete in that window stayed after a rollback, while their databases went back, so the two could disagree. While checked they now see the library read-only, keeping their ports for the media connection audit. After the commit they start as usual.
+- **Hardware video works with only one of Jellyfin and Immich.** With Immich but not Jellyfin, the chip was checked inside a Jellyfin that doesn't exist, so Immich was never switched over. With Jellyfin but not Immich, setup said "needs setup: Immich" for an app you turned off. Now only the apps this server runs are checked, each inside its own container, and only those count towards finishing the step. A chip that fails one app's check leaves that app in software; that is a result, not a step left to do.
+- **A backup that systemd can't even start now raises an alert.** Its worker writes no report then, so the dashboard showed "Unknown — No recorded successful run" for ever, and nothing reached the phone. The collector now reads the backup service's own result: a run systemd couldn't start or that crashed counts as failed, with an alert. A backup that has never succeeded becomes overdue one interval plus a day after its schedule was set up.
+- **A monthly update that failed before its snapshot no longer leaves passwords behind.** The saved app definitions (`*-old.json`, with database passwords) are written before the recovery journal exists. When an early check failed there was nothing to roll back, so they stayed in plain text in the snapshot folder on the HDD (root-only). They are now blanked after any failed run; a run a journal still needs is left alone.
+- **Immich set up with its own worker split** (`IMMICH_WORKERS_EXCLUDE` in its settings) was left with no worker at all while the monthly update checked it, so every update failed its checks and rolled back. The exclusion is set aside for the check.
+
+### Changed
+- Version 0.27.11; the release folder is now `nekoserver-v0.27.11`.
+
+### Upgrade notes
+- The bundled runtime must be rebuilt for this release.
+
 ## v0.27.10 — 2026-10-21
 
 ### Fixed
